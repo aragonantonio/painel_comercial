@@ -25,10 +25,10 @@ select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6p
 select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 main{display:grid;gap:28px;min-width:0}
 section{min-width:0}
-.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));background:var(--panel);border:1px solid var(--line);border-radius:10px}
-.kpi{padding:16px 18px;border-right:1px solid var(--line)}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.kpi{padding:16px 18px;border-right:1px solid var(--line);min-width:0}
 .kpi:last-child{border-right:0}
-.kpi b{display:block;font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.kpi b{display:block;font-size:24px;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
 .kpi span{font-size:13px;color:var(--mut)}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px}
@@ -102,6 +102,7 @@ const R=D.r.map(a=>({mi:a[0],o:a[1],s:a[2],sd:a[3],cl:a[4],st:a[5],et:a[6],v:a[7
 const $=i=>document.getElementById(i);
 const nf=n=>n.toLocaleString('pt-BR'),pc=x=>(x*100).toFixed(1).replace('.',',')+'%';
 const bl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const bc=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',notation:'compact',maximumFractionDigits:2});
 const sum=(a,f)=>a.reduce((t,x)=>t+f(x),0);
 function opts(el,arr,all){el.innerHTML='<option value="-2">'+all+'</option>'+arr.map((t,i)=>'<option value="'+i+'">'+t+'</option>').join('')}
 opts($('fs'),L.s,'Todos os segmentos');opts($('fo'),L.o,'Todas as origens');
@@ -116,7 +117,7 @@ function render(){
  const d=R.filter(r=>r.mi>=fp&&(fs<-1||r.s===fs)&&(fo<-1||r.o===fo));
  const w=d.filter(r=>r.st===1),lo=d.filter(r=>r.st===2),op=d.filter(r=>r.st===0),cl=w.length+lo.length;
  const ci=w.filter(r=>r.cy>=0);
- $('kpis').innerHTML=[[nf(d.length),'leads'],[nf(w.length),'negócios ganhos'],[cl?pc(w.length/cl):'-','taxa de ganho nos fechados'],[bl.format(sum(w,r=>r.v)),'receita ganha'],[w.length?bl.format(sum(w,r=>r.v)/w.length):'-','ticket médio'],[ci.length?Math.round(sum(ci,r=>r.cy)/ci.length)+' dias':'-','ciclo médio até ganhar'],[bl.format(sum(op,r=>r.v)),'em aberto no funil']].map(k=>'<div class="kpi"><b>'+k[0]+'</b><span>'+k[1]+'</span></div>').join('');
+ $('kpis').innerHTML=[[nf(d.length),'leads'],[nf(w.length),'negócios ganhos'],[cl?pc(w.length/cl):'-','taxa de ganho nos fechados'],[bc.format(sum(w,r=>r.v)),'receita ganha'],[w.length?bl.format(sum(w,r=>r.v)/w.length):'-','ticket médio'],[ci.length?Math.round(sum(ci,r=>r.cy)/ci.length)+' dias':'-','ciclo médio até ganhar'],[bc.format(sum(op,r=>r.v)),'em aberto no funil']].map(k=>'<div class="kpi"><b>'+k[0]+'</b><span>'+k[1]+'</span></div>').join('');
  const st=[['Leads',d.length],['Qualificados',sum(d,r=>r.q)],['Reunião realizada',sum(d,r=>r.r)],['Proposta enviada',sum(d,r=>r.p)],['Negociação',sum(d,r=>r.n)],['Ganhos',w.length]];
  let worst=null;
  $('fun').innerHTML=st.map((s,i)=>{const prev=i?st[i-1][1]:s[1],step=i&&prev?s[1]/prev:1;if(i&&(!worst||step<worst.s))worst={s:step,a:st[i-1][0],b:s[0]};
