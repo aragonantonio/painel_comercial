@@ -61,6 +61,11 @@ tr.best td{background:var(--soft);font-weight:600}
 .alert b.big{color:var(--rose)}
 .tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;background:var(--rosesoft);color:var(--rose);font-weight:600}
 .read{margin:12px 0 0;font-size:13px;color:var(--mut)}
+.mon{margin-top:30px}
+.mon .p i{position:relative}
+.mon .p i b{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:2px;font-size:10px;font-style:normal;font-weight:600;line-height:1;color:var(--ink)}
+.mon .p i.g b{color:var(--teal)}
+@media (max-width:600px){.mon .p i b{font-size:9px}}
 @media (max-width:860px){.app{grid-template-columns:1fr;gap:18px}.rail{position:static}.fun{grid-template-columns:100px 1fr}.fun .r{grid-column:1/-1;margin-bottom:6px}.kpi{border-right:0;border-bottom:1px solid var(--line)}.row,.nox .row{grid-template-columns:minmax(90px,1fr) 78px minmax(40px,1fr) 50px}.row .x{display:none}}
 </style>
 </head>
@@ -124,7 +129,7 @@ function render(){
   return '<span>'+s[0]+'</span><span class="bar"><i style="width:'+(d.length?s[1]/d.length*100:0)+'%"></i></span><span class="r"><b>'+nf(s[1])+'</b> <small>'+(d.length?pc(s[1]/d.length)+' dos leads':'')+(i?', '+pc(step)+' da etapa anterior':'')+'</small></span>'}).join('');
  $('funsub').textContent=worst?'Maior queda entre etapas: de '+worst.a.toLowerCase()+' para '+worst.b.toLowerCase()+' ('+pc(worst.s)+' avançam).':'';
  const mm=M.map((m,i)=>({m,n:d.filter(r=>r.mi===i).length,g:d.filter(r=>r.mi===i&&r.st===1).length}));const mx=Math.max(1,...mm.map(x=>x.n));
- $('mon').innerHTML=mm.map(x=>'<div title="'+x.m+': '+x.n+' leads, '+x.g+' ganhos"><span class="p"><i style="height:'+x.n/mx*100+'%"></i><i class="g" style="height:'+x.g/mx*100+'%"></i></span><span class="l">'+x.m.slice(5)+'/'+x.m.slice(2,4)+'</span></div>').join('');
+ $('mon').innerHTML=mm.map(x=>'<div title="'+x.m+': '+x.n+' leads, '+x.g+' ganhos"><span class="p"><i style="height:'+x.n/mx*100+'%"><b>'+x.n+'</b></i><i class="g" style="height:'+x.g/mx*100+'%"><b>'+x.g+'</b></i></span><span class="l">'+x.m.slice(5)+'/'+x.m.slice(2,4)+'</span></div>').join('');
  function tbl(id,g,rd,rid){const mx=Math.max(.01,...g.map(x=>x.wr));
   $(id).innerHTML='<div class="row h"><span>Grupo</span><span>Leads</span><span>Taxa de ganho</span><span></span><span class="x">Ticket médio</span></div>'+g.filter(x=>x.n).sort((a,b)=>b.wr-a.wr).map(x=>row(x.l,x.n,x.wr,x.cl?pc(x.wr):'-',x.w?bl.format(x.tk):'',x.cl<10,mx)).join('');
   const ok=g.filter(x=>x.cl>=10&&x.l!=='Sem registro').sort((a,b)=>b.wr-a.wr);
