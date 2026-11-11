@@ -36,6 +36,14 @@ td b{display:block;font-weight:600}td small{color:var(--mut);font-size:11px}
 td.up{background:var(--soft)}td.dn{background:var(--rosesoft)}td.low b{opacity:.55}
 tr.team td{border-top:2px solid var(--line);color:var(--mut)}
 .read{margin:12px 0 0;font-size:13px;color:var(--mut)}
+h3{font-size:14px;margin:22px 0 0}
+.rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:18px;margin-top:12px}
+.rc{text-align:center;display:grid;justify-items:center;gap:1px}
+.rc svg{width:124px;height:124px}
+.rc svg circle{fill:none;stroke-width:14}
+.rc .tr{stroke:var(--soft)}.rc .pg{stroke:var(--teal)}.rc .tm{stroke:var(--c3)}
+.rc text{fill:var(--ink);font-size:21px;font-weight:600;text-anchor:middle;font-family:inherit}
+.rc small{color:var(--mut);font-size:12px}.rc small.up{color:var(--teal);font-weight:600}.rc small.dw{color:var(--rose);font-weight:600}
 .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--mut);margin:8px 0 6px}
 .leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
 .ar{display:grid;grid-template-columns:150px minmax(0,1fr) 150px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
@@ -51,8 +59,8 @@ tr.team td{border-top:2px solid var(--line);color:var(--mut)}
 <header><div><h1>Desempenho por SDR e vendedor</h1><p class="sub">Prumo Gestão Empresarial, dados fictícios até 09/11/2026.</p></div>
 <div><label for="fp">Período</label><select id="fp"><option value="0">Todo o período</option><option value="7">Últimos 6 meses</option><option value="10">Últimos 3 meses</option></select></div></header>
 <section><div class="band" id="kpis"></div></section>
-<section class="box"><h2>SDRs: conversão por etapa</h2><p class="sub">De cada etapa para a seguinte, sobre os leads atribuídos ao SDR. Verde: 5 pontos ou mais acima da média do time. Rosa: 5 pontos ou mais abaixo. Esmaecido: menos de 15 negócios na etapa.</p><div class="sc"><table id="tsdr"></table></div><p class="read" id="rsdr"></p></section>
-<section class="box"><h2>Vendedores: conversão por etapa</h2><p class="sub">Dos negócios que chegaram à reunião, em cada closer. A taxa de ganho considera só propostas já decididas.</p><div class="sc"><table id="tclo"></table></div><p class="read" id="rclo"></p></section>
+<section class="box"><h2>SDRs: conversão por etapa</h2><p class="sub">De cada etapa para a seguinte, sobre os leads atribuídos ao SDR. Verde: 5 pontos ou mais acima da média do time. Rosa: 5 pontos ou mais abaixo. Esmaecido: menos de 15 negócios na etapa.</p><div class="sc"><table id="tsdr"></table></div><h3>Lead para reunião realizada, por SDR</h3><div class="rings" id="dsdr"></div><p class="read" id="rsdr"></p></section>
+<section class="box"><h2>Vendedores: conversão por etapa</h2><p class="sub">Dos negócios que chegaram à reunião, em cada closer. A taxa de ganho considera só propostas já decididas.</p><div class="sc"><table id="tclo"></table></div><h3>Reunião realizada para ganho, por vendedor</h3><p class="sub">Negócios ainda abertos contam como não ganhos, então a taxa tende a subir quando eles forem decididos.</p><div class="rings" id="dclo"></div><p class="read" id="rclo"></p></section>
 <section class="box"><h2>Atividades realizadas</h2><p class="sub">Quantidade por tipo, no período do filtro. O número à direita mostra o volume por negócio.</p><div class="leg" id="leg"></div><div id="act"></div><p class="read" id="note"></p></section>
 </div>
 <script>
@@ -68,6 +76,7 @@ const sum=(a,f)=>a.reduce((t,x)=>t+f(x),0);
 const cnt=d=>({l:d.length,q:sum(d,r=>r.q),r:sum(d,r=>r.r),p:sum(d,r=>r.p),n:sum(d,r=>r.n),w:d.filter(r=>r.st===1).length,dec:d.filter(r=>r.p===1&&r.st!==0).length});
 const SP=[['l','q','Lead para qualificado'],['q','r','Qualificado para reunião'],['r','p','Reunião para proposta'],['p','n','Proposta para negociação'],['n','w','Negociação para ganho']];
 function cell(c,t,a,b){const den=c[a],v=den?c[b]/den:0,tv=t[a]?t[b]/t[a]:0;const k=den<15?'low':(v-tv>=.05?'up':v-tv<=-.05?'dn':'');return '<td class="'+k+'"><b>'+(den?pc(v):'-')+'</b><small>'+c[b]+' de '+den+'</small></td>'}
+function ring(l,n,d,tv,k){const v=d?n/d:0,C=2*Math.PI*42,df=tv===null?null:(v-tv)*100;const dt=df===null?'':(Math.abs(df)<.05?'igual à média':(df>0?'+':'−')+d1(Math.abs(df))+' pontos vs. time');const c=df===null?'':df>=5?'up':df<=-5?'dw':'';return '<div class="rc"><svg viewBox="0 0 120 120" role="img" aria-label="'+l+': '+pc(v)+'"><circle class="tr" cx="60" cy="60" r="42"/><circle class="'+k+'" cx="60" cy="60" r="42" stroke-dasharray="'+(C*v)+' '+C+'" transform="rotate(-90 60 60)"/><text x="60" y="60" dy=".35em">'+(d?pc(v):'-')+'</text></svg><b>'+l+'</b><small>'+n+' de '+d+'</small><small class="'+c+'">'+dt+'</small></div>'}
 function avgH(d){const h=d.filter(r=>r.h>=0);return h.length?sum(h,r=>r.h)/h.length:null}
 function render(){
  const fp=+$('fp').value,d=R.filter(r=>r.mi>=fp),a=A.filter(x=>x.mi>=fp);
@@ -82,6 +91,7 @@ function render(){
   '<tr class="team"><td>Média do time</td><td>'+nf(Ts.l)+'</td>'+SP.map(p=>'<td>'+(Ts[p[0]]?pc(Ts[p[1]]/Ts[p[0]]):'-')+'</td>').join('')+'<td>'+(avgH(ds)===null?'-':d1(avgH(ds))+' h')+'</td><td>'+(Ts.l?d1(sum(sr,s=>s.ac)/Ts.l):'-')+'</td></tr>';
  const rk=sr.filter(s=>s.c.l>=15).map(s=>({s,v:s.c.q/s.c.l})).sort((p,q)=>q.v-p.v);
  $('rsdr').textContent=rk.length>1?'Melhor qualificação: '+rk[0].s.nm+' ('+pc(rk[0].v)+'). Menor: '+rk[rk.length-1].s.nm+' ('+pc(rk[rk.length-1].v)+'), com '+d1(rk[rk.length-1].s.ac/rk[rk.length-1].s.c.l)+' atividades por lead. Mais atividade não significou mais qualificação.':'';
+ $('dsdr').innerHTML=ring('Média do time',Ts.r,Ts.l,null,'tm')+sr.map(s=>ring(s.nm,s.c.r,s.c.l,Ts.l?Ts.r/Ts.l:0,'pg')).join('');
  // Closers
  const dc=d.filter(r=>r.cl>=0&&r.r===1),Tc=cnt(dc);
  const CP=SP.slice(2);
@@ -91,6 +101,7 @@ function render(){
   '<tr class="team"><td>Média do time</td><td>'+nf(Tc.r)+'</td>'+CP.map(p=>'<td>'+(Tc[p[0]]?pc(Tc[p[1]]/Tc[p[0]]):'-')+'</td>').join('')+'<td>'+(Tc.dec?pc(Tc.w/Tc.dec):'-')+'</td><td>'+bc.format(sum(cr,s=>s.rev))+'</td><td>'+(Tc.w?bl.format(sum(cr,s=>s.rev)/Tc.w):'-')+'</td><td>'+(Tc.r?d1(sum(cr,s=>s.ac)/Tc.r):'-')+'</td></tr>';
  const ck=cr.filter(s=>s.c.dec>=15).map(s=>({s,v:s.c.w/s.c.dec})).sort((p,q)=>q.v-p.v);
  $('rclo').textContent=ck.length>1?'Maior taxa de ganho: '+ck[0].s.nm+' ('+pc(ck[0].v)+'). Menor: '+ck[ck.length-1].s.nm+' ('+pc(ck[ck.length-1].v)+'). Compare com o ticket e a receita antes de concluir quem rende mais.':'';
+ $('dclo').innerHTML=ring('Média do time',Tc.w,Tc.r,null,'tm')+cr.map(s=>ring(s.nm,s.c.w,s.c.r,Tc.r?Tc.w/Tc.r:0,'pg')).join('');
  // Atividades
  const col=['var(--c1)','var(--c2)','var(--c3)','var(--c4)'];
  $('leg').innerHTML=L.t.map((t,i)=>'<span><i style="background:'+col[i]+'"></i>'+t+'</span>').join('');
