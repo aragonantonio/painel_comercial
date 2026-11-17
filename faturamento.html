@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Faturamento com e sem churn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F4F5;--panel:#FFFFFF;--ink:#12202B;--mut:#5B6B77;--line:#D9E0E4;--teal:#0E7C7B;--blue:#2F4B7C;--rose:#B3365F;--band:#EAF1F3;--band2:#E3F0EE;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A21;--panel:#16252E;--ink:#E7EEF2;--mut:#93A5B1;--line:#263A46;--teal:#3CC1BC;--blue:#7FA2E0;--rose:#F0839F;--band:#1B2D38;--band2:#173438;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1A21;--panel:#16252E;--ink:#E7EEF2;--mut:#93A5B1;--line:#263A46;--teal:#3CC1BC;--blue:#7FA2E0;--rose:#F0839F;--band:#1B2D38;--band2:#173438;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+.app{max-width:1100px;margin:0 auto;padding:24px 20px 48px;display:grid;gap:22px}
+h1{font-size:26px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:16px;margin:0 0 2px}
+.sub{color:var(--mut);font-size:13px;margin:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.leg{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;margin:12px 0 4px}
+.leg span{display:inline-flex;align-items:center;gap:8px}
+.leg i{display:inline-block;width:26px;height:0;border-top:3px solid}
+.leg i.d{border-top-style:dashed}
+#ch svg,#ch2 svg,#ch3 svg{display:block;width:100%}
+#ch text,#ch2 text,#ch3 text{fill:var(--mut);font:11px "Instrument Sans",system-ui,sans-serif}
+#ch .cap,#ch2 .cap,#ch3 .cap{fill:var(--ink);font-weight:600}
+#ch text.v,#ch2 text.v,#ch3 text.v{font-size:10px;font-weight:600}
+#ch text.va{fill:var(--blue)}
+#ch text.vb,#ch2 text.vb,#ch3 text.vb{fill:var(--teal)}
+#ch2 text.vg,#ch3 text.vg{fill:var(--ink)}
+#ch .gl,#ch2 .gl,#ch3 .gl{stroke:var(--line);stroke-width:1}
+.la,.lb{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.la{stroke:var(--blue)}.lb{stroke:var(--teal)}.lb.p{stroke-dasharray:6 5}
+.lg{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-dasharray:2 6;stroke-linecap:round}
+.leg i.dt{border-top-style:dotted}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);border-radius:10px;margin-top:14px}
+.kpi{padding:14px 16px;border-right:1px solid var(--line);min-width:0}.kpi:last-child{border-right:0}
+.kpi b{display:block;font-size:22px;line-height:1.15;letter-spacing:-.02em;white-space:nowrap}
+.kpi span{display:block;font-size:13px;color:var(--mut)}
+.kpi b.n{color:var(--rose)}.kpi b.p{color:var(--teal)}
+@media (max-width:640px){.kpi{border-right:0;border-bottom:1px solid var(--line)}.kpi:last-child{border-bottom:0}}
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px}
+.sc{overflow-x:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--mut);font-weight:500;border-top:0;white-space:normal;vertical-align:bottom}
+th:first-child,td:first-child{text-align:left}
+td.n{color:var(--rose);font-weight:600}
+tr.tot td{border-top:2px solid var(--line);font-weight:700}
+.note{font-size:13px;color:var(--mut);margin:0}
+@media (max-width:480px){.tabs{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1>Faturamento com e sem churn</h1><p class="sub">Parcelas dos contratos ganhos, mês a mês, de julho de 2026 a julho de 2027. Dados fictícios, com corte em 12/11/2026.</p></header>
+<section class="box"><h2>Projeção de Contratos com Churn</h2><p class="sub">Valor por mês de recebimento. Rótulos em R$ mil; onde as linhas coincidem, aparece um único rótulo.</p>
+<div class="leg"><span><i style="border-color:var(--blue)"></i>Sem churn: todas as parcelas dos contratos gerados</span><span><i style="border-color:var(--teal)"></i>Com churn: churn real até o corte</span><span><i class="d" style="border-color:var(--teal)"></i>Com churn: projeção pela taxa de churn</span></div>
+<div id="ch"></div></section>
+<section class="tabs"><div class="box"><h2>Últimos 3 meses</h2><p class="sub">Setembro a novembro de 2026. Novembro vai só até 12/11.</p><div class="sc"><table id="t1"></table></div></div>
+<div class="box"><h2>Próximos 3 meses</h2><p class="sub">Dezembro de 2026 a fevereiro de 2027, com churn projetado.</p><div class="sc"><table id="t2"></table></div></div></section>
+<p class="note" id="nt"></p>
+<section class="box"><h2>Projeção de Faturamento e Meta</h2><p class="sub">Rótulos em R$ mil. A meta começa em R$ 100 mil em jul/26 e cresce R$ 20 mil por mês.</p>
+<div class="leg"><span><i style="border-color:var(--teal)"></i>Faturamento com churn (real até o corte)</span><span><i class="d" style="border-color:var(--teal)"></i>Faturamento projetado pela taxa de crescimento atual</span><span><i class="dt" style="border-color:var(--ink)"></i>Meta</span></div>
+<div id="ch2"></div><p class="note" id="n2" style="margin-top:12px"></p></section>
+<section class="box"><h2>Contratos x Meta</h2><p class="sub">Rótulos em R$ mil. A linha de faturamento é a do gráfico 1: com churn, real até o corte e projetada depois.</p>
+<div class="leg"><span><i style="border-color:var(--teal)"></i>Faturamento com churn (real até o corte)</span><span><i class="d" style="border-color:var(--teal)"></i>Projeção com churn do gráfico 1</span><span><i class="dt" style="border-color:var(--ink)"></i>Meta</span></div>
+<div id="ch3"></div></section>
+<section class="box"><h2>Diferença entre Contratos e Meta</h2><div class="band" id="k2"></div><p class="note" id="n3" style="margin-top:12px"></p></section>
+</div>
+<script>
+const D={"m":["2026-07","2026-08","2026-09","2026-10","2026-11","2026-12","2027-01","2027-02","2027-03","2027-04","2027-05","2027-06","2027-07"],"a":[113541.65,135091.66,155783.32,176618.32,184384.98,100984.98,78734.98,42259.99,29960.0,20776.67,15535.0,13251.67,6493.34],"b":[111941.65,135091.66,144541.65,157784.98,164284.98,76262.98,52125.3,18574.08,9912.8,9346.36,8812.28,6796.24,2186.97],"cut":4,"i1":[2,3,4],"i2":[5,6,7],"r":0.05714285714285714,"nc":8,"ex":140};
+const NM=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const ml=m=>NM[+m.slice(5)-1]+'/'+m.slice(2,4);
+const bl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const pc=x=>(x*100).toFixed(1).replace('.',',')+'%';
+const sg=v=>(v<0?'\u2212':'')+bl.format(Math.abs(v));
+const sp=v=>(v<0?'\u2212':'')+pc(Math.abs(v));
+const k1=v=>(v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const kk=v=>v===0?'0':(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:0})+' mil';
+function draw(){
+ const el=document.getElementById('ch'),W=el.clientWidth||600,H=Math.round(Math.max(300,Math.min(420,W*.46))),M={l:W<480?44:58,r:14,t:40,b:44};
+ const n=D.m.length,pw=W-M.l-M.r,ph=H-M.t-M.b,st=pw/(n-1);
+ const mx=Math.max(...D.a),mg=Math.pow(10,Math.floor(Math.log10(mx))),top=Math.ceil(mx*1.08/(mg/2))*(mg/2);
+ const X=i=>M.l+i*st,Y=v=>M.t+ph-v/top*ph;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Faturamento mensal com e sem churn">';
+ const bd=(a,b,c,t)=>'<rect x="'+(X(a)-st/2)+'" y="'+M.t+'" width="'+((b-a+1)*st)+'" height="'+ph+'" fill="var('+c+')"/><text class="cap" x="'+(X(a)-st/2+6)+'" y="'+(M.t-10)+'">'+t+'</text>';
+ s+=bd(D.i1[0],D.i1[2],'--band','Últimos 3 meses')+bd(D.i2[0],D.i2[2],'--band2','Próximos 3 meses');
+ for(let k=0;k<=4;k++){const v=top/4*k;s+='<line class="gl" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(M.l-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+kk(v)+'</text>'}
+ const every=W<560?2:1;
+ D.m.forEach((m,i)=>{if(i%every===0)s+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle">'+ml(m)+'</text>'});
+ const path=(arr,a,b)=>{let d='';for(let i=a;i<=b;i++)d+=(i===a?'M':'L')+X(i)+' '+Y(arr[i]);return d};
+ s+='<path class="la" d="'+path(D.a,0,n-1)+'"/><path class="lb" d="'+path(D.b,0,D.cut)+'"/><path class="lb p" d="'+path(D.b,D.cut,n-1)+'"/>';
+ D.m.forEach((m,i)=>{
+  s+='<circle cx="'+X(i)+'" cy="'+Y(D.a[i])+'" r="3.5" fill="var(--panel)" stroke="var(--blue)" stroke-width="2"><title>'+ml(m)+', sem churn: '+bl.format(D.a[i])+'</title></circle>';
+  s+='<circle cx="'+X(i)+'" cy="'+Y(D.b[i])+'" r="3.5" fill="var(--panel)" stroke="var(--teal)" stroke-width="2"><title>'+ml(m)+', com churn'+(i>D.cut?' (projeção)':'')+': '+bl.format(D.b[i])+'</title></circle>';
+  if(i%every===0){s+='<text class="v va" x="'+X(i)+'" y="'+(Y(D.a[i])-9)+'" text-anchor="middle">'+k1(D.a[i])+'</text>';if(Math.abs(D.a[i]-D.b[i])>=1)s+='<text class="v vb" x="'+X(i)+'" y="'+(Y(D.b[i])+17)+'" text-anchor="middle">'+k1(D.b[i])+'</text>'}});
+ el.innerHTML=s+'</svg>';
+}
+function lines(id,f,g,aria){
+ const c=D.cut,n=D.m.length;
+ const el=document.getElementById(id),W=el.clientWidth||600,H=Math.round(Math.max(300,Math.min(420,W*.46))),M={l:W<480?44:58,r:14,t:40,b:44};
+ const pw=W-M.l-M.r,ph=H-M.t-M.b,st=pw/(n-1),mx=Math.max(...f,...g),mg=Math.pow(10,Math.floor(Math.log10(mx))),top=Math.ceil(mx*1.08/(mg/2))*(mg/2);
+ const X=i=>M.l+i*st,Y=v=>M.t+ph-v/top*ph,every=W<560?2:1;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+aria+'">';
+ for(let k=0;k<=4;k++){const v=top/4*k;s+='<line class="gl" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(M.l-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+kk(v)+'</text>'}
+ D.m.forEach((m,i)=>{if(i%every===0)s+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle">'+ml(m)+'</text>'});
+ const path=(a,x,y)=>{let d='';for(let i=x;i<=y;i++)d+=(i===x?'M':'L')+X(i)+' '+Y(a[i]);return d};
+ s+='<path class="lg" d="'+path(g,0,n-1)+'"/><path class="lb" d="'+path(f,0,c)+'"/><path class="lb p" d="'+path(f,c,n-1)+'"/>';
+ D.m.forEach((m,i)=>{
+  s+='<circle cx="'+X(i)+'" cy="'+Y(g[i])+'" r="3.5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"><title>'+ml(m)+', meta: '+bl.format(g[i])+'</title></circle>';
+  s+='<circle cx="'+X(i)+'" cy="'+Y(f[i])+'" r="3.5" fill="var(--panel)" stroke="var(--teal)" stroke-width="2"><title>'+ml(m)+', faturamento'+(i>c?' (projeção)':'')+': '+bl.format(f[i])+'</title></circle>';
+  if(i%every===0){const up=f[i]>=g[i];s+='<text class="v vb" x="'+X(i)+'" y="'+(Y(f[i])+(up?-9:17))+'" text-anchor="middle">'+k1(f[i])+'</text><text class="v vg" x="'+X(i)+'" y="'+(Y(g[i])+(up?17:-9))+'" text-anchor="middle">'+k1(g[i])+'</text>'}});
+ el.innerHTML=s+'</svg>';
+}
+function draw2(){
+ const c=D.cut,gr=D.b[c]/D.b[c-1]-1;
+ const f=D.b.map((v,i)=>i<=c?v:D.b[c]*Math.pow(1+gr,i-c)),g=D.m.map((m,i)=>100000+20000*i);
+ lines('ch2',f,g,'Faturamento e controle da meta');
+ lines('ch3',D.b,g,'Projeção com churn do gráfico 1 e meta');
+ const nx=c+1,d=D.b[nx]-g[nx];
+ const cell=(v,l,x,k)=>'<div class="kpi"><b'+(k?' class="'+k+'"':'')+'>'+v+'</b><span>'+l+'</span>'+(x?'<span>'+x+'</span>':'')+'</div>';
+ document.getElementById('k2').innerHTML=cell(ml(D.m[nx]),'Próximo mês')+cell(sg(d),'Diferença (projeção \u2212 meta)',sp(d/g[nx])+' da meta',d<0?'n':'p');
+ document.getElementById('n2').textContent='Taxa de crescimento atual: '+pc(gr)+' ao mês (faturamento com churn de '+ml(D.m[c])+' sobre '+ml(D.m[c-1])+'). Depois do corte, o faturamento cresce essa taxa de forma composta, e ela já embute o churn observado.';
+ document.getElementById('n3').textContent='A diferença é a projeção com churn do gráfico 1, que só considera as parcelas dos contratos já gerados, menos a meta; negativa significa abaixo da meta.';
+}
+function tab(id,ix){
+ let ta=0,tb=0,h='<tr><th>Mês</th><th>Sem churn</th><th>Com churn</th><th>Diferença</th><th>Diferença %</th></tr>';
+ ix.forEach(i=>{const a=D.a[i],b=D.b[i];ta+=a;tb+=b;h+='<tr><td>'+ml(D.m[i])+'</td><td>'+bl.format(a)+'</td><td>'+bl.format(b)+'</td><td class="n">'+sg(b-a)+'</td><td class="n">'+(a?sp((b-a)/a):'-')+'</td></tr>'});
+ h+='<tr class="tot"><td>Total</td><td>'+bl.format(ta)+'</td><td>'+bl.format(tb)+'</td><td class="n">'+sg(tb-ta)+'</td><td class="n">'+(ta?sp((tb-ta)/ta):'-')+'</td></tr>';
+ document.getElementById(id).innerHTML=h;
+}
+tab('t1',D.i1);tab('t2',D.i2);
+document.getElementById('nt').textContent='Diferença é a linha com churn menos a linha sem churn. Até o corte, o churn é o real: parcelas deixam de ser recebidas a partir do mês do churn. Depois do corte, os contratos ainda ativos sofrem a taxa média de churn de '+pc(D.r)+' ao mês ('+D.nc+' churns em '+D.ex+' contratos ativos por mês, de dez/2025 a nov/2026), aplicada de forma acumulada. Contratos à vista não entram no churn.';
+draw();draw2();let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{draw();draw2()},120)});
+</script>
+</body>
+</html>
